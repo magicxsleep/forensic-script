@@ -1,7 +1,7 @@
 # forensic-script
 
-#!/bin/bash
 # Define que o script será executado no Bash.
+#!/bin/bash
 
 # Verifica se foi passado um arquivo como argumento
 if [ -z "$1" ]; then
