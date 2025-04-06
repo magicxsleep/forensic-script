@@ -1,22 +1,22 @@
-# Define que o script será executado no Bash.
+# define que o script será executado no Bash.
 #!/bin/bash
 
-# Verifica se foi passado um arquivo como argumento
+# verifica se foi passado um arquivo como argumento
 if [ -z "$1" ]; then
     echo "❌ Uso: $0 <arquivo>"
     exit 1
 fi
 
-# Verifica se o arquivo existe
+# verifica se o arquivo existe
 if [ ! -f "$1" ]; then
     echo "❌ Arquivo não encontrado: $1"
     exit 1
 fi
 
-# Detecta o pendrive e sua partição
+# detecta o pendrive e sua partição
 echo -e "\033[1;34m🔌 Conecte o PENDRIVE...\033[0m"
 while true; do
-    # Detecta dispositivos removíveis (RM=1) usando `lsblk`
+    # detecta dispositivos removíveis (RM=1) usando `lsblk`
     DISPOSITIVO=$(lsblk -dno NAME,RM | awk '$2==1 {print $1}' | head -n 1)
     if [ -n "$DISPOSITIVO" ]; then
         echo -e "\033[1;32m✅ Pendrive detectado: /dev/$DISPOSITIVO\033[0m"
