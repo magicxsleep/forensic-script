@@ -3,20 +3,20 @@
 # BASE_DIR: diretório para salvar os dumps de memória.
 BASE_DIR='memory'
 
-# verifica se o gdb está instalado.
-if ! command -v gdb &> /dev/null; then
+# verifica se o gdb está instalado, que siginica (GNU Debugger).
+if ! command -v gdb &> /dev/null; then 
 	echo "Erro: gdb não encontrado. Falha ao realizar o dump de memória."
 	exit 1
-fi
+fi 
 
 # cria o diretório base, se não existir.
 mkdir -p "$BASE_DIR"
 
 # obtém os PIDs de todos os processos em execução.
-pids=$(ps aux | awk 'NR>1 {print $2}')
+pids=$(ps aux | awk 'NR>1 {print $2}') #essa linha obtém a lista de todos os Process IDs (PIDs) em execução no sistema.
 
-# loop através de cada PID.
-for pid in $pids; do
+# loop através de cada PID. 
+for pid in $pids; do 
 	echo "Dump da memória do PID: $pid"
 	mkdir -p "$BASE_DIR/$pid"
 
@@ -27,6 +27,6 @@ for pid in $pids; do
 		gdb --batch --pid "$pid" -ex "dump memory \"$BASE_DIR/$pid/$pid-$start-$stop\" 0x$start 0x$stop"
 	done
 	echo "Dump concluído para o PID: $pid"
-done
+done # este é um loop for que percorre cada PID armazenado na variável pids
 
-echo "Processo de dump de memória CONCLUÍDO."
+echo "Dump de memória concluído."
