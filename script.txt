@@ -29,4 +29,4 @@ for pid in $pids; do
 	echo "Dump concluído para o PID: $pid"
 done # este é um loop for que percorre cada PID armazenado na variável pids
 
-echo "Dump de memória concluído."
+echo "Dump de memória concluído." #após o loop terminar (todos os PIDs foram processados) esta mensagem indica que foi concluído o processo de dump.
