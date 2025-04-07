@@ -1,32 +1,43 @@
 #!/bin/bash
 
-# BASE_DIR: diretório para salvar os dumps de memória.
-BASE_DIR='memory'
+# verifica se está rodando como root
+if [ "$EUID" -ne 0 ]; then
+  echo "[-] este script precisa ser executado como root."
+  exit 1
+fi
 
-# verifica se o gdb está instalado, que siginica (GNU Debugger).
-if ! command -v gdb &> /dev/null; then 
-	echo "Erro: gdb não encontrado. Falha ao realizar o dump de memória."
-	exit 1
-fi 
+# define o nome do diretório de trabalho com base na data e hora
+data=$(date +%Y%m%d_%H%M%S)
+dir="dump_mem_$data"
 
-# cria o diretório base, se não existir.
-mkdir -p "$BASE_DIR"
+# cria o diretório de trabalho e subdiretório para saída do sleuth kit
+echo "[+] criando diretório de trabalho: $dir"
+mkdir -p "$dir/tsk_output"
 
-# obtém os PIDs de todos os processos em execução.
-pids=$(ps aux | awk 'NR>1 {print $2}') #essa linha obtém a lista de todos os Process IDs (PIDs) em execução no sistema.
+# define o caminho do arquivo de dump
+dump_path="$dir/mem_dump.raw"
 
-# loop através de cada PID. 
-for pid in $pids; do 
-	echo "Dump da memória do PID: $pid"
-	mkdir -p "$BASE_DIR/$pid"
+# realiza o dump da memória ram usando dd
+echo "[+] iniciando dump da memória ram com dd..."
+dd if=/dev/mem of="$dump_path" bs=1m status=progress
 
-	# obtém as regiões de memória RW (leitura/escrita) e faz o dump.
-	grep 'rw-p' "/proc/$pid/maps" |
-	sed -n 's/^\([0-9a-f]*\)-\([0-9a-f]*\) .*$/\1 \2/p' |
-	while read start stop; do
-		gdb --batch --pid "$pid" -ex "dump memory \"$BASE_DIR/$pid/$pid-$start-$stop\" 0x$start 0x$stop"
-	done
-	echo "Dump concluído para o PID: $pid"
-done # este é um loop for que percorre cada PID armazenado na variável pids
+# lista os arquivos gerados com detalhes usando ls
+echo "[+] listando arquivos com ls -lh..."
+ls -lh "$dir" > "$dir/ls_output.txt"
 
-echo "Dump de memória concluído." #após o loop terminar (todos os PIDs foram processados) esta mensagem indica que foi concluído o processo de dump.
+# mostra a estrutura do diretório usando tree
+echo "[+] mostrando estrutura de diretórios com tree..."
+tree "$dir" > "$dir/tree_output.txt"
+
+# inicia análise forense básica com sleuth kit
+echo "[+] iniciando análise com sleuth kit..."
+
+# usa mmls para tentar identificar partições (geralmente não aplicável em ram)
+mmls "$dump_path" > "$dir/tsk_output/mmls.txt" 2>&1
+
+# tenta listar arquivos no offset 0 com fls
+fls -r -o 0 "$dump_path" > "$dir/tsk_output/fls.txt" 2>&1
+
+# finaliza o processo
+echo "[+] processo finalizado!"
+echo "    diretório com dados: $dir"
